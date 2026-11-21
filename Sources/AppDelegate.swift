@@ -342,6 +342,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         for url in urls {
             guard url.scheme == "pphub" else { continue }
             switch url.host {
+            case "ctl":
+                // 远程操作：key / type / click / focus / ax / ax-click / status
+                // 能力在 CtlEngine，默认关闭且需令牌（见 Config.ctlEnabled）
+                CtlEngine.handle(url)
+
             case "clipboard": panel.show(.clipboard)
             case "launcher": panel.show(.launcher)
             case "diag-files":

@@ -139,13 +139,14 @@ open "pphub://diag-files?kw=网易"                                  # 应用内
 ## 目录
 
 ```
-Sources/            30 个 swift 文件，约 4400 行
+Sources/            31 个 swift 文件，约 4700 行
   AppDelegate.swift 启动、菜单、URL scheme
   Panel/            启动器面板：搜索、分组、键盘与输入法
   Window/           窗口吸附：几何计算、拖拽、跨屏
   Voice/            语音：听写、会议、润色、配置
   Clip/             剪贴板：采集、存储、面板
   Core/             应用索引、文件搜索、拼音、日志、自检
+  Ctl/              远程操作接口（默认关闭，见下文）
 Resources/Info.plist
 Tests/smoke.sh      验收脚本
 build.sh            swiftc 构建 + 打包
@@ -153,6 +154,32 @@ build.sh            swiftc 构建 + 打包
 
 数据：`~/Library/Application Support/pp-hub/config.json`（润色开关、热键、会议目录、固定纠错表）与 `log.txt`。
 日志是排障第一入口，带 `snap:` / `voice:` / `clip:` / `filesearch:` / `panel:` 前缀。
+
+## 远程操作接口（默认关闭）
+
+除了手动按键，pp-hub 提供一个 URL 通道，让脚本或自动化程序驱动这台机器：
+
+```
+pphub://ctl/key?combo=ctrl+alt+left&token=<令牌>
+pphub://ctl/type?text=你好&token=<令牌>
+pphub://ctl/click?x=800&y=400&token=<令牌>
+pphub://ctl/focus?app=com.apple.finder&token=<令牌>
+pphub://ctl/ax?app=com.apple.finder&depth=3&token=<令牌>      # 读界面元素树
+pphub://ctl/ax-click?app=com.apple.TextEdit&label=删除&token=<令牌>
+pphub://ctl/status?token=<令牌>
+```
+
+结果没有回传通道（URL 单向），写到 `~/Library/Application Support/pp-hub/ctl-last.txt`，调用方读文件取结果。
+
+**为什么放在应用里而不是做一个命令行工具**：macOS 的辅助功能授权按*进程身份*发放。命令行工具没有应用身份，它注入按键时系统认定的"责任进程"是调用它的那个程序，而那个进程在设置里没有条目，于是永远被拒。应用本身有身份、有授权，把它做在这里一次授权就够。
+
+**默认关闭，且必须带令牌**。`config.json` 里两个字段缺一不可：
+
+```json
+{ "ctlEnabled": true, "ctlToken": "<32 位随机串>" }
+```
+
+理由很直接：这个接口能替你敲键盘、点鼠标。如果默认开启或不要令牌，任何网页只要让你点一个 `pphub://ctl/...` 链接，就能在你电脑上打字。所以默认关闭、令牌不匹配即拒绝，拒绝原因写日志。
 
 ## 已知限制
 

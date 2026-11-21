@@ -25,6 +25,11 @@ struct Config: Codable {
     var meetingDir: String = "~/Documents/pp-hub 会议"
     /// 会议识别会话轮换周期（秒）：长会话不换会涨内存、也会识别漂移
     var meetingRotateSec: Double = 300
+    /// 远程操作入口（pphub://ctl/…）总开关。默认关闭：
+    /// 这个入口能替你敲键盘、点鼠标，默认开启等于给所有网页一把钥匙
+    var ctlEnabled: Bool = false
+    /// 远程操作令牌：URL 必须带 &token=<此处值>，为空则一律拒绝
+    var ctlToken: String = ""
     static let dir = URL(fileURLWithPath: ("~/Library/Application Support/pp-hub" as NSString).expandingTildeInPath)
     static let path = dir.appendingPathComponent("config.json")
 
@@ -52,6 +57,8 @@ struct Config: Codable {
         clipboardMax = v(.clipboardMax, clipboardMax)
         meetingDir = v(.meetingDir, meetingDir)
         meetingRotateSec = v(.meetingRotateSec, meetingRotateSec)
+        ctlEnabled = v(.ctlEnabled, ctlEnabled)
+        ctlToken = v(.ctlToken, ctlToken)
     }
 
     static func load() -> Config {
